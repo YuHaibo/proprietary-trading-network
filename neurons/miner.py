@@ -38,12 +38,18 @@ class Miner:
         if self.config.run_position_inspector:
             self.position_inspector_thread = threading.Thread(target=self.position_inspector.run_update_loop, daemon=True)
             self.position_inspector_thread.start()
+            # 设置Dashboard的position_inspector实例
+            if hasattr(self, 'dashboard'):
+                self.dashboard.set_position_inspector(self.position_inspector)
         else:
             self.position_inspector_thread = None
         # Dashboard
         # Start the miner data api in its own thread
         try:
             self.dashboard = Dashboard(self.wallet, self.metagraph, self.config, self.is_testnet)
+            # 设置Dashboard的position_inspector实例
+            if self.config.run_position_inspector:
+                self.dashboard.set_position_inspector(self.position_inspector)
             self.dashboard_api_thread = threading.Thread(target=self.dashboard.run, daemon=True)
             self.dashboard_api_thread.start()
         except OSError as e:

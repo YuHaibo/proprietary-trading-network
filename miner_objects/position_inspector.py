@@ -20,6 +20,7 @@ class PositionInspector:
         self.stop_requested = False  # Flag to control the loop
         assert self.config.netuid in (8, 116), "Taoshi runs on netuid 8 (mainnet) and 116 (testnet)"
         self.is_testnet = self.config.netuid == 116
+        self.current_positions = []  # 存储当前持仓数据
 
 
     def run_update_loop(self):
@@ -36,6 +37,10 @@ class PositionInspector:
 
     def get_recently_acked_validators(self):
         return self.recently_acked_validators
+        
+    def get_current_positions(self):
+        """返回当前存储的持仓数据"""
+        return self.current_positions
 
     def get_possible_validators(self):
         # Right now bittensor has no functionality to know if a hotkey 100% corresponds to a validator
@@ -143,6 +148,9 @@ class PositionInspector:
 
         if not result:
             bt.logging.info("No positions found.")
+        
+        # 存储获取到的持仓数据
+        self.current_positions = result
 
         self.last_update_time = time.time()
         bt.logging.success("PositionInspector successfully completed signal processing.")

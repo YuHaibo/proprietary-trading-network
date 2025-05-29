@@ -28,6 +28,7 @@ class Dashboard:
         self._add_cors_middleware()
         self._setup_routes()
         self.miner_data = {"timestamp": 0, "statistics": {"data": []}, "positions": {}}
+        self.position_inspector_instance = None  # 存储PositionInspector实例的引用
 
     def _add_cors_middleware(self):
         # allow the connection from the frontend
@@ -41,6 +42,10 @@ class Dashboard:
             allow_methods=["*"],  # allow all HTTP methods
             allow_headers=["*"],  # allow all headers
         )
+        
+    def set_position_inspector(self, position_inspector):
+        """设置PositionInspector实例的引用"""
+        self.position_inspector_instance = position_inspector
 
     def _setup_routes(self):
         @self.app.get("/miner")
@@ -59,6 +64,14 @@ class Dashboard:
                 bt.logging.info("No data received from validator. Setting and returning empty data.")
 
             return self.miner_data
+            
+        @self.app.get("/api/miner-position")
+        async def get_miner_position():
+            if self.position_inspector_instance is None:
+                return {"error": "Position inspector not initialized"}
+            
+            positions = self.position_inspector_instance.get_current_positions()
+            return {"positions": positions}
 
     def get_next_unused_port(self, start, stop):
         """
