@@ -1,4 +1,5 @@
 import sys
+import os
 
 import requests
 import json
@@ -19,6 +20,21 @@ class CustomEncoder(json.JSONEncoder):
         # Let the base class default method raise the TypeError
         return json.JSONEncoder.default(self, obj)
 
+
+def load_api_key():
+    # 获取当前脚本所在目录
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    config_path = os.path.join(current_dir, 'miner_secrets.json')
+    
+    try:
+        with open(config_path, 'r') as f:
+            config = json.load(f)
+            return config.get('api_key', 'error_key')
+    except (FileNotFoundError, json.JSONDecodeError) as e:
+        print(f"invalid config: {e}")
+        return 'error_key'
+
+
 if __name__ == "__main__":
     # Set the default URL endpoint
     default_base_url = 'http://127.0.0.1:80'
@@ -35,12 +51,14 @@ if __name__ == "__main__":
 
     url = f'{base_url}/api/receive-signal'
 
+    api_key = load_api_key()
+
     # Define the JSON data to be sent in the request
     data = {
         'trade_pair': TradePair.BTCUSD,
         'order_type': OrderType.LONG,
         'leverage': .1,
-        'api_key': 'xxxx'
+        'api_key': api_key
     }
 
     # Convert the Python dictionary to JSON format
